@@ -112,14 +112,6 @@
   .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .25s ease;}
   .progress-label{font-family:var(--font-mono); font-size:.7rem; color:var(--ink-45); margin-top:7px; letter-spacing:.03em;}
 
-  .name-field{margin:18px 0 26px;}
-  .name-field label{display:block; font-size:.82rem; color:var(--ink-70); margin-bottom:7px;}
-  .name-field input{
-    width:100%; padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:var(--paper-raised);
-    color:var(--ink); font-size:.95rem; font-family:inherit;
-  }
-  .name-field input:focus{border-color:var(--accent);}
-
   fieldset.qcard{
     border:1px solid var(--line); border-radius:16px; background:var(--paper-raised); padding:18px 16px 16px;
     margin:0 0 16px; box-shadow:0 1px 0 var(--line);
@@ -400,13 +392,6 @@
 
     var form = el("form", {id:"quiz-form", novalidate:"novalidate"});
 
-    var nameField = el("div", {"class":"name-field"},
-      '<label for="resp-name">Your name or initials <span style="color:var(--ink-45)">(optional)</span></label>'
-    );
-    var nameInput = el("input", {type:"text", id:"resp-name", maxlength:"40", autocomplete:"off", placeholder:"e.g. J.K."});
-    nameField.appendChild(nameInput);
-    form.appendChild(nameField);
-
     QUESTIONS.forEach(function(item, qi){
       var fs = el("fieldset", {"class":"qcard", id:"q-"+qi});
       var legend = el("legend", null,
@@ -487,14 +472,10 @@
     answers.forEach(function(a, i){ if (a === QUESTIONS[i].correct) score++; });
     lastScore = score;
 
-    var name = (document.getElementById("resp-name") || {}).value || "";
-    name = name.trim().slice(0, 40);
-
     var recorded = false;
     if (apiConfigured()){
       try{
         var res = await apiPost({
-          name: name,
           answers: answers.slice(),
           score: score,
           total: QUESTIONS.length
