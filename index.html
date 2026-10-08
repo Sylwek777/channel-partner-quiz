@@ -104,6 +104,9 @@
   .page-head h1{font-size:1.5rem; margin-top:6px;}
   .back-link{font-family:var(--font-mono); font-size:.72rem; color:var(--ink-45); display:inline-flex; gap:5px; align-items:center;}
 
+  /* results dashboard is viewed on the host's larger screen, not a phone — give it room */
+  .results-page{max-width:1120px; padding:32px 28px 64px;}
+
   /* ---------- quiz view ---------- */
   .progress-rail{
     position:sticky; top:0; z-index:5; background:var(--paper); padding:14px 0 10px; margin-bottom:4px;
@@ -181,8 +184,9 @@
   .legend-note{font-size:.74rem; color:var(--ink-45); display:flex; align-items:center; gap:6px;}
   .legend-swatch{width:9px; height:9px; border-radius:3px; background:var(--good); flex:none;}
 
+  .qgrid{display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:14px; margin-bottom:8px;}
   .qresult{
-    background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:16px 16px 14px; margin-bottom:12px;
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:16px 16px 14px;
   }
   .qresult .qhead{display:flex; gap:9px; align-items:baseline; margin-bottom:12px;}
   .qresult .qhead .qtext{font-size:.88rem; font-weight:600; line-height:1.4;}
@@ -195,7 +199,7 @@
   .barrow.correct .barfill{background:var(--good);}
   .barcount{font-family:var(--font-mono); font-size:.74rem; color:var(--ink-70); text-align:right;}
 
-  .histwrap{background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:18px 16px;}
+  .histwrap{background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:18px 16px; max-width:640px; margin:0 auto;}
   .hist{display:flex; align-items:flex-end; gap:8px; height:120px;}
   .hist .histcol{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px;}
   .hist .histbar{width:100%; max-width:30px; background:var(--accent); border-radius:5px 5px 2px 2px; min-height:2px; transition:height .4s ease;}
@@ -243,7 +247,7 @@
 
   <!-- ============ RESULTS VIEW ============ -->
   <section id="view-results" class="view">
-    <div class="page">
+    <div class="page results-page">
       <div class="page-head">
         <a href="#/host" class="back-link">← Back to QR screen</a>
         <h1><span class="live-dot"></span>Live Results</h1>
@@ -334,6 +338,22 @@
   var hostTimer = null, resultsTimer = null;
   var POLL_MS = 4000;
 
+  var LOCK_KEY = "cpq_submitted_v1";
+
+  /* Soft, device-local lock: this is the only option without
+     requiring participants to sign in. It stops accidental or casual
+     resubmission from the same browser, not a determined retake
+     (clearing storage or using another browser defeats it). */
+  function getLock(){
+    try{
+      var raw = localStorage.getItem(LOCK_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e){ return null; }
+  }
+  function setLock(score){
+    try{ localStorage.setItem(LOCK_KEY, JSON.stringify({score:score, at:Date.now()})); } catch(e){}
+  }
+
   function el(tag, attrs, html){
     var e = document.createElement(tag);
     if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
@@ -371,7 +391,13 @@
     var page = document.getElementById("quiz-page");
     page.innerHTML = "";
 
-    if (submitted){
+    var lock = getLock();
+    if (submitted || lock){
+      if (!submitted && lock){
+        lastScore = lock.score;
+        window.__lastRecorded = true;
+        window.__alreadyDone = true;
+      }
       page.appendChild(renderDone());
       return;
     }
@@ -486,6 +512,8 @@
       }
     }
 
+    if (recorded) setLock(score);
+
     submitted = true;
     window.__lastRecorded = recorded;
     renderQuiz();
@@ -493,9 +521,11 @@
 
   function renderDone(){
     var wrap = el("div", {"class":"done-wrap"});
-    var head = el("div", null, '<span class="eyebrow">Submitted</span>');
+    var alreadyDone = !!window.__alreadyDone;
+
+    var head = el("div", null, '<span class="eyebrow">'+(alreadyDone ? "Already submitted" : "Submitted")+'</span>');
     wrap.appendChild(head);
-    var h = el("h1", null, "Thanks for taking the quiz");
+    var h = el("h1", null, alreadyDone ? "You've already taken this quiz" : "Thanks for taking the quiz");
     wrap.appendChild(h);
 
     var ring = el("div", {"class":"score-ring"});
@@ -503,7 +533,9 @@
     wrap.appendChild(ring);
 
     var note;
-    if (window.__lastRecorded){
+    if (alreadyDone){
+      note = el("p", {"class":"done-note"}, "This device already submitted an answer — each participant can only take the quiz once.");
+    } else if (window.__lastRecorded){
       note = el("p", {"class":"done-note"}, "Your answers have been recorded. Thanks for taking part.");
     } else {
       note = el("p", {"class":"done-note warn-note"}, "Your score is shown above, but it could not be recorded right now — the connection to the results sheet may be down.");
@@ -590,6 +622,7 @@
       '<h2>By question</h2><span class="legend-note"><span class="legend-swatch"></span> correct answer</span>');
     body.appendChild(secTitle);
 
+    var qgrid = el("div", {"class":"qgrid"});
     QUESTIONS.forEach(function(item, qi){
       var card = el("div", {"class":"qresult"});
       var qhead = el("div", {"class":"qhead"},
@@ -612,8 +645,9 @@
         row.appendChild(el("div", {"class":"barcount tabular"}, String(c)));
         card.appendChild(row);
       });
-      body.appendChild(card);
+      qgrid.appendChild(card);
     });
+    body.appendChild(qgrid);
 
     var secTitle2 = el("div", {"class":"section-title"}, '<h2>Score distribution</h2>');
     body.appendChild(secTitle2);
