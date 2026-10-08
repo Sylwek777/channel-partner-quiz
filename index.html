@@ -357,7 +357,7 @@
   }
 
   function apiConfigured(){
-    return !!API_URL && API_URL.indexOf("https://script.google.com/macros/s/AKfycbxHzJZJ8HcA-TTn2vq8smB_Cx0aPm60ciPPo7A_gG6uSvZj88R7Sv_1TZMjMOSCDuwd/exec") === -1;
+    return !!API_URL && /^https?:\/\//.test(API_URL);
   }
 
   /* Sent without a custom Content-Type so the browser keeps it a
