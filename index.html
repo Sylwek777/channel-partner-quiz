@@ -116,12 +116,12 @@
     border:1px solid var(--line); border-radius:16px; background:var(--paper-raised); padding:18px 16px 16px;
     margin:0 0 16px; box-shadow:0 1px 0 var(--line);
   }
-  fieldset.qcard legend{display:flex; gap:10px; align-items:baseline; padding:0; margin-bottom:13px; width:100%;}
+  .qhead-row{display:flex; gap:10px; align-items:baseline; width:100%; margin-bottom:13px;}
   .qnum{
     font-family:var(--font-mono); font-size:.72rem; font-weight:600; color:var(--accent-ink);
     background:var(--accent-soft); border-radius:6px; padding:2px 7px; flex:none;
   }
-  .qtext{font-size:.98rem; font-weight:600; line-height:1.4;}
+  .qtext{font-size:.98rem; font-weight:600; line-height:1.4; min-width:0; overflow-wrap:anywhere;}
   .opt{
     display:flex; align-items:flex-start; gap:11px; padding:11px 12px; border-radius:11px;
     border:1px solid var(--line); margin-bottom:8px; cursor:pointer; transition:border-color .12s, background .12s;
@@ -134,8 +134,8 @@
     display:flex; align-items:center; justify-content:center; transition:border-color .12s, background .12s;
   }
   .opt .bullet::after{content:""; width:9px; height:9px; border-radius:50%; background:var(--accent); transform:scale(0); transition:transform .12s;}
-  .opt .olabel{font-size:.7rem; font-family:var(--font-mono); color:var(--ink-45); margin-right:2px;}
-  .opt .otext{font-size:.92rem; line-height:1.4; color:var(--ink);}
+  .opt .olabel{font-size:.7rem; font-family:var(--font-mono); color:var(--ink-45); margin-right:2px; flex:none;}
+  .opt .otext{font-size:.92rem; line-height:1.4; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
   .opt:has(input:checked){border-color:var(--accent); background:var(--accent-soft);}
   .opt:has(input:checked) .bullet{border-color:var(--accent);}
   .opt:has(input:checked) .bullet::after{transform:scale(1);}
@@ -394,10 +394,10 @@
 
     QUESTIONS.forEach(function(item, qi){
       var fs = el("fieldset", {"class":"qcard", id:"q-"+qi});
-      var legend = el("legend", null,
+      var qhead = el("div", {"class":"qhead-row"},
         '<span class="qnum">Q'+(qi+1)+' / '+QUESTIONS.length+'</span><span class="qtext">'+escapeHtml(item.q)+'</span>'
       );
-      fs.appendChild(legend);
+      fs.appendChild(qhead);
 
       item.options.forEach(function(optText, oi){
         var label = el("label", {"class":"opt"});
@@ -428,7 +428,7 @@
     var bar = el("div", {"class":"submit-bar"});
     var btn = el("button", {type:"submit", "class":"submit-btn", form:"quiz-form"}, "Submit answers");
     bar.appendChild(btn);
-    document.getElementById("view-quiz").appendChild(bar);
+    page.appendChild(bar);
 
     var errNote = el("div", {"class":"submit-error", id:"submit-error"}, "Something went wrong submitting your answers. Please try again.");
     page.appendChild(errNote);
