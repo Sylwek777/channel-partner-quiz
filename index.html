@@ -174,7 +174,6 @@
   .score-ring .num{font-family:var(--font-mono); font-size:2.1rem; font-weight:700; color:var(--accent-ink);}
   .done-note{color:var(--ink-70); font-size:.9rem; max-width:360px; margin:14px auto 0; line-height:1.5;}
   .done-note.warn-note{color:var(--warn);}
-  .results-peek{margin-top:26px; font-family:var(--font-mono); font-size:.76rem;}
 
   /* ---------- results view ---------- */
   .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:28px;}
@@ -524,15 +523,11 @@
 
     var note;
     if (window.__lastRecorded){
-      note = el("p", {"class":"done-note"}, "Your answers have been added to the live results.");
+      note = el("p", {"class":"done-note"}, "Your answers have been recorded. Thanks for taking part.");
     } else {
-      note = el("p", {"class":"done-note warn-note"}, "Your score is shown above, but it could not be added to the shared results right now — the connection to the results sheet may be down.");
+      note = el("p", {"class":"done-note warn-note"}, "Your score is shown above, but it could not be recorded right now — the connection to the results sheet may be down.");
     }
     wrap.appendChild(note);
-
-    var peek = el("div", {"class":"results-peek"});
-    peek.appendChild(el("a", {href:"#/results"}, "View live results →"));
-    wrap.appendChild(peek);
 
     return wrap;
   }
